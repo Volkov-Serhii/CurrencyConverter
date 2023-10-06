@@ -1,0 +1,15 @@
+.header-container {
+    background-color: #4caf50;
+    color: white;
+    padding: 20px;
+    text-align: center;
+  }
+  
+  .header-title {
+    font-size: 36px;
+    margin-bottom: 10px;
+  }
+  
+  .exchange-rates {
+    font-size: 18px;
+  }
