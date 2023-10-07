@@ -1,17 +1,18 @@
 import React, {useEffect, useState} from 'react';
-import  {getExchangeRates, getEurRate, getUSDRate} from '../../http/requests';
+import  {getExchangeRates, getRate} from '../../http/requests';
 import  './Header.css'; 
 
 
 const Header = () => {
-    const [usdRate, setUsdRate] = useState(null);
-    const [eurRate, setEurRate] = useState(null);
+    const [usdRate, setUsdRate] = useState(0);
+    const [eurRate, setEurRate] = useState(0);
+    
     useEffect(()=>{
         const fetch = async()=>{
-            const responseEUR = await getEurRate();
-            setEurRate(responseEUR.rate);
-            const responseUSD = await getUSDRate();
+            const responseEUR = await getRate("EUR");
+            const responseUSD = await getRate("USD");
             setUsdRate(responseUSD.rate);
+            setEurRate(responseEUR.rate);
         }
         fetch();
     },[]);
@@ -20,8 +21,8 @@ const Header = () => {
         <header className="header-container">
             <h1 className="header-title">Exchange Rates</h1>
                 <div className="exchange-rates">
-                    <p>USD: {usdRate} UAH</p>
-                    <p>EUR: {eurRate} UAH</p>
+                    <p>USD: {usdRate.toFixed(2)} UAH</p>
+                    <p>EUR: {eurRate.toFixed(2)} UAH</p>
                 </div>
         </header>
     );
