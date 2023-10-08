@@ -4,9 +4,9 @@ const Select = (props) => {
 
     return(
         <select value={props.value} onChange={props.onChange}>
-            <option value="UAH">UAH</option>
+            <option title = "Українська гривня" value="UAH">UAH</option>
             {props.array.map((item, index) => (
-                <option key = {index} value={item.CurrencyCodeL}>{item.CurrencyCodeL}</option>
+                <option key = {index} title = {item.txt} value={item.cc}>{item.cc}</option>
             ))}
         </select>
     );

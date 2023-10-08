@@ -3,8 +3,9 @@ import axios from "axios";
 export const getExchangeRates = async () => {
     var ret;
     try {
+        ///NBU_Exchange/exchange?json
         ///NBUStatService/v1/statdirectory/exchangenew?json
-        const response = await axios.get('/NBU_Exchange/exchange?json')
+        const response = await axios.get('NBUStatService/v1/statdirectory/exchangenew?json')
         ret = response.data;
     } catch (err) {
         console.log(err);
