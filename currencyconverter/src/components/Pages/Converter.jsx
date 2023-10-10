@@ -9,80 +9,112 @@ const Converter = () => {
   const [firstCurrency, setFirstCurrency] = useState('UAH');
   const [secondCurrency, setSecondCurrency] = useState('USD');
   const [currencyArray, setCurrencyArray] = useState([]);
+  const [firstRate, setFirstRate] = useState(1);
+  const [secondRate, setSecondRate] = useState(0);
   const [Rate, setRate] = useState(0);
+  
+  useEffect(() => {
+    const fetch = async() =>{
+      const responsesecondcurrency = await getRate(secondCurrency);
+      console.log(responsesecondcurrency.rate);
+      setSecondRate(responsesecondcurrency.rate);
+      await changeAmount(firstAmount,firstCurrency,1);
+    }
+    if(Rate === Infinity || Rate === 0){
+      fetch();
+    }
+  }, [Rate]);
 
   useEffect(() => {
     const fetch = async () => {
       const response = await getExchangeRates();
       setCurrencyArray(response);
-      changeFirstRate(firstAmount,firstCurrency)
+      await changeAmount(firstAmount,firstCurrency,1);
     };
     fetch();
   }, []);
 
-  const changeFirstRate = async (value,currency) => {
-    if(currency === secondCurrency){
-      setSecondAmount((value * 1).toFixed(2));
-      setRate(1);
-    }else if(currency === "UAH"){
-      const response = await getRate(secondCurrency);
-      setSecondAmount((value * 1/response.rate).toFixed(2));
-      setRate(1/response.rate);
-    }else if(secondCurrency === "UAH"){
+  const changeAmount = async (value, currency, target) => {
+    let newFirstAmount = firstAmount;
+    let newSecondAmount = secondAmount;
+    let newFirstCurrency = firstCurrency;
+    let newSecondCurrency = secondCurrency;
+    let Amount = 0;
+
+    if(target === 1){
+      newFirstAmount = value;
+      newFirstCurrency = currency;
+    }else if(target === 2){
+      newSecondAmount = value;
+      newSecondCurrency = currency;
+    }
+
+    Amount = await AmountChenges(newFirstCurrency,newSecondCurrency,value,target);
+    
+    if(target === 1){
+      newSecondAmount = Amount.toFixed(2);
+    }else if(target === 2){
+      newFirstAmount = Amount.toFixed(2);
+    }
+
+    setFirstAmount(newFirstAmount);
+    setSecondAmount(newSecondAmount);
+  }
+
+  const AmountChenges = async(currencyfirst,currencysecond,value,target) => {
+    let responsefirst, responsesecond;
+    if(currencyfirst !== firstCurrency ){
+      responsefirst = await GetRate(currencyfirst);
+      setFirstRate(responsefirst);
+    }else {
+      responsefirst = firstRate;
+    }
+    if(currencysecond !== secondCurrency ){
+      responsesecond = await GetRate(currencysecond);
+      setSecondRate(responsesecond)
+    }else {
+      responsesecond = secondRate;
+    }
+      return value * chengeRate(responsefirst,responsesecond,target);
+  }
+
+  const chengeRate = (ratefirst,ratesecond,target) =>{
+    setRate(ratefirst/ratesecond);
+    if(target === 1){
+      return ratefirst/ratesecond;
+    }
+    return ratesecond/ratefirst;
+  }
+
+  const GetRate = async(currency) =>{
+    if(currency !== "UAH"){
       const response = await getRate(currency);
-      setSecondAmount((value * response.rate).toFixed(2));
-      setRate(response.rate);
-    }else{
-      const responsefirst = await getRate(currency);
-      const responsesecond = await getRate(secondCurrency);
-      setSecondAmount((value * responsefirst.rate/responsesecond.rate).toFixed(2));
-      setRate(responsefirst.rate/responsesecond.rate);
+      return response.rate;
+    }
+    return 1;
+  }
+
+  const CurrencyHandler = async(e,target) => {
+    const value = e.target.value;
+    if (target === 1) {
+      setFirstCurrency(value);
+      await changeAmount(firstAmount,value,target);
+    } else if (target === 2) {
+      setSecondCurrency(value);
+      await changeAmount(secondAmount,value,target);
     }
   }
 
-  const changeSecondRate = async (value,currency) => {
-    if(firstCurrency === currency){
-      setFirstAmount((value * 1).toFixed(2));
-      setRate(1);
-    }else if(currency === "UAH"){
-      const response = await getRate(firstCurrency);
-      setFirstAmount((value * 1/response.rate).toFixed(2));
-      setRate(response.rate);
-    }else if(firstCurrency === "UAH"){
-      const response = await getRate(currency);
-      setFirstAmount((value * response.rate).toFixed(2));
-      setRate(1/response.rate);
-    }else{
-      const responsefirst = await getRate(firstCurrency);
-      const responsesecond = await getRate(currency);
-      setFirstAmount((value * responsesecond.rate/responsefirst.rate).toFixed(2));
-      setRate(responsefirst.rate/responsesecond.rate);
+  const AmountHandler = async(e,target) => {
+    const value = e.target.value;
+    if (target === 1) {
+      setFirstAmount(value);
+      await changeAmount(value,firstCurrency,target);
+    } else if (target === 2) {
+      setSecondAmount(value);
+      await changeAmount(value,secondCurrency,target);
     }
   }
-
-  const firstCurrencyHandler = (e) => {
-    const value = e.target.value;
-    setFirstCurrency(value);
-    changeFirstRate(firstAmount,value);
-  };
-
-  const secondCurrencyHandler = (e) => {
-    const value = e.target.value;
-    setSecondCurrency(value);
-    changeSecondRate(secondAmount,value);
-  };
-
-  const firstAmountHandler = async(e) => {
-    const value = e.target.value;
-    setFirstAmount(value);
-    await changeFirstRate(value,firstCurrency);
-  };
-
-  const secondAmountHandler = async(e) => {
-    const value = e.target.value;
-    setSecondAmount(value);
-    await changeSecondRate(value,secondCurrency);
-  };
 
   return (
     <div>
@@ -94,20 +126,20 @@ const Converter = () => {
         <input
           type="number"
           value={firstAmount}
-          onChange={firstAmountHandler}
+          onChange={e => AmountHandler(e,1)}
           className="amount-input"
         />
-        <Select array = {currencyArray} value = {firstCurrency} onChange = {firstCurrencyHandler}></Select>
+        <Select array = {currencyArray} value = {firstCurrency} onChange = {e => CurrencyHandler(e,1)}></Select>
       </div>
       <div className="equals-sign">=</div>
       <div className="output-container">
       <input
           type="number"
           value={secondAmount}
-          onChange={secondAmountHandler}
+          onChange={e => AmountHandler(e,2)}
           className="amount-input"
         />        
-        <Select array = {currencyArray} value = {secondCurrency} onChange = {secondCurrencyHandler}></Select>
+        <Select array = {currencyArray} value = {secondCurrency} onChange = {e => CurrencyHandler(e,2)}></Select>
       </div>
     </div>
     </div>
